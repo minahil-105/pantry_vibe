@@ -1,8 +1,7 @@
 import axios from "axios";
 import got from "got";
 
-// const GOOGLE_VISION_API_KEY = process.env.GOOGLE_VISION_API_KEY;
-// const GOOGLE_VISION_API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`;
+
 
 const imaggaApiKey = "acc_6a40298ba1dc57d";
 const imaggaApiSecret = "76d9e39b60392a34ed87d929b1c6d9a9";
