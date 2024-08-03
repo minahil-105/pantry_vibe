@@ -1,0 +1,31 @@
+{
+  "name": "pantry_vibe",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.13.0",
+    "@google-cloud/vision": "^4.3.0",
+    "@mui/icons-material": "^5.16.5",
+    "@mui/material": "^5.16.5",
+    "axios": "^1.7.3",
+    "date-fns": "^3.6.0",
+    "firebase": "^10.12.4",
+    "got": "^14.4.2",
+    "next": "14.2.5",
+    "openai": "^4.54.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-webcam": "^7.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5"
+  }
+}
