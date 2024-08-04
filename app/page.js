@@ -13,12 +13,14 @@ import {
   CssBaseline,
   Modal,
 } from "@mui/material";
+import { GlobalStyles } from "@mui/material";
 import {
   Add,
   Delete,
   Edit,
   Search,
   CameraAlt,
+  Bluetooth,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { format } from "date-fns";
@@ -34,20 +36,23 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import "@fontsource/pacifico";
 
 // Styled components for better UI design
 const Root = styled(Box)({
-  backgroundColor: "#f0f0f0",
+  backgroundColor: "#eddcd9",
   padding: "20px",
   minHeight: "100vh",
 });
 
 const Title = styled(Typography)({
+  fontFamily: "'Pacifico', cursive",
   color: "#3f51b5",
   marginBottom: "20px",
 });
 
 const CustomTextField = styled(TextField)({
+  fontFamily: "'Pacifico', cursive",
   marginRight: "10px",
   marginBottom: "10px",
 });
@@ -65,14 +70,14 @@ const ListItem = styled("li")({
   alignItems: "center",
   justifyContent: "space-between",
   padding: "10px",
-  backgroundColor: "#fff",
+  backgroundColor: "#FFFBF5",
   borderRadius: "4px",
   marginBottom: "10px",
   boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
 });
 
 const CustomIconButton = styled(IconButton)({
-  color: "#3f51b5",
+  color: "#9C27B0",
 });
 
 const UpdateButton = styled(Button)({
@@ -84,13 +89,21 @@ const UpdateButton = styled(Button)({
 });
 
 const Header = styled(AppBar)({
+  fontFamily: "'Pacifico', cursive",
   marginBottom: "20px",
+  backgroundColor: "#694F8E",
+});
+
+const HeaderTitle = styled(Typography)({
+  fontFamily: "'Pacifico', cursive",
+  color: "#fff",
+  flexGrow: 1,
 });
 
 const Footer = styled(Box)({
   marginTop: "20px",
   padding: "10px",
-  backgroundColor: "#3f51b5",
+  backgroundColor: "#694F8E",
   color: "#fff",
   textAlign: "center",
 });
@@ -264,13 +277,18 @@ console.log(pantryItems)
   return (
     <React.Fragment>
       <CssBaseline />
+      <GlobalStyles styles={{ body: { backgroundColor: "#BB9AB1" } }} />
       <Header position="static">
         <Toolbar>
-          <Typography variant="h6" noWrap>
-            Pantry Manager
+          <Typography  variant="h5" noWrap  style={{ 
+            fontFamily: "'Pacifico', cursive" ,
+            color: "#EDDCD9",
+            paddingBottom: 10,
+          }}>
+            Pantry Vibe
           </Typography>
           <Typography variant="subtitle1" noWrap style={{ marginLeft: "20px" }}>
-            Keep track of your pantry items effortlessly.
+            Keep track of your pantry items effortlessly
           </Typography>
         </Toolbar>
       </Header>

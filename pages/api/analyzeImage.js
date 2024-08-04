@@ -1,7 +1,7 @@
 import axios from "axios";
 import got from "got";
 
-
+//yarn dev
 
 const imaggaApiKey = "acc_6a40298ba1dc57d";
 const imaggaApiSecret = "76d9e39b60392a34ed87d929b1c6d9a9";

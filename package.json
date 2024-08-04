@@ -9,8 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^5.2.12",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
+    "@fontsource/pacifico": "^5.0.13",
     "@google-cloud/vision": "^4.3.0",
     "@mui/icons-material": "^5.16.5",
     "@mui/material": "^5.16.5",
