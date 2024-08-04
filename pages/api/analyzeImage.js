@@ -26,20 +26,16 @@ export default async function handler(req, res) {
         password: imaggaApiSecret,
       });
 
-      const tags = JSON.parse(imaggaResponse.body).result.tags.map(tag => tag.tag.en);
+      const tags = JSON.parse(imaggaResponse.body).result.tags;
       if (tags.length === 0) {
         return res.status(400).json({ error: "No tags found for the image" });
       }
-
-      // Step 2: Get recipes based on tags using Spoonacular API
-      const spoonacularUrl = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=apples,+flour,+sugar&number=2&apiKey=${spoonacularApiKey}`;
-
-      const spoonacularResponse = await axios.get(spoonacularUrl);
-
-      res.status(200).json(spoonacularResponse.data);
+      res.status(200).json(tags);
     } catch (error) {
       console.error("Error:", error);
-      res.status(500).json({ error: "Error processing request", details: error.message });
+      res
+        .status(500)
+        .json({ error: "Error processing request", details: error.message });
     }
 
     // try {

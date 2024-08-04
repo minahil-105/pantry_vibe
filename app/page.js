@@ -152,7 +152,6 @@ const Home = () => {
       }
     });
   }, []);
-
   // Function to handle adding a new item
   const handleAddItem = async () => {
     if (!newItem.name.trim() || !newItem.quantity.trim()) {
@@ -179,7 +178,12 @@ const Home = () => {
           console.error("Error in image analysis request:", response);
           throw new Error("Image analysis failed");
         }
-        labels = await response.json(); // Log all labels to console
+        const tags = await response.json();
+        const firstTwoTags = tags.slice(0, 2);
+        labels = firstTwoTags.map((tag) => ({
+          confidence: tag.confidence,
+          label: tag.tag.en,
+        }));
       }
 
       // Add item to Firestore with the first label and image URL
@@ -188,20 +192,21 @@ const Home = () => {
         quantity: newItem.quantity,
         expirationDate: newItem.expirationDate,
         image: imageUrl,
-        label: labels[0] || "", // Display only the first label
+        labels: labels || "", // Display only the first label
         uid: user.uid,
       });
 
       setPantryItems([
         ...pantryItems,
-        { id: docRef.id, ...newItem, image: imageUrl, label: labels[0] || "" },
+        { id: docRef.id, ...newItem, image: imageUrl, labels: labels || "" },
       ]);
       setNewItem({
         name: "",
         quantity: "",
         expirationDate: "",
         image: "",
-        label: "",
+        labels: "",
+        uid: "",
       });
       toast.dismiss(loading);
       toast.success("Item Added Successfully!");
@@ -443,10 +448,20 @@ const Home = () => {
                 <ul>
                   {filteredItems.map((item) => (
                     <ListItem key={item.id}>
-                      <Typography variant="body1">
-                        {item.name} - {item.quantity} -{" "}
-                        {formatDate(item.expirationDate)}
-                      </Typography>
+                      <Box>
+                        <Typography variant="body1">
+                          {item.name} - {item.quantity} -{" "}
+                          {formatDate(item.expirationDate)}
+                        </Typography>
+                        {item.labels?.map((label) => (
+                          <Box key={label.label}>
+                            <Typography>
+                              Label: {label.label} -{" "}
+                              {Math.round(label.confidence)}%
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
                       {item.image && (
                         <Image
                           src={item.image}
