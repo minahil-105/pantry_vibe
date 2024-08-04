@@ -505,6 +505,7 @@ const Home = () => {
                   ref={webcamRef}
                   screenshotFormat="image/jpeg"
                   width="100%"
+                  facingMode="environment"
                 />
                 <Button
                   variant="contained"
