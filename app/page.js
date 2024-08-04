@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Fragment } from "react";
 import {
   Box,
   TextField,
@@ -37,6 +37,9 @@ import {
 } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import "@fontsource/pacifico";
+import Auth from "./auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebaseConfig";
 
 // Styled components for better UI design
 const Root = styled(Box)({
@@ -123,7 +126,8 @@ const Home = () => {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [recipes, setRecipes] = useState([]);
   const webcamRef = useRef(null);
-
+  const [user, setUser] = useState(null);
+  console.log(user);
   // Fetch items from Firestore on component mount
   useEffect(() => {
     const fetchItems = async () => {
@@ -140,6 +144,14 @@ const Home = () => {
     };
 
     fetchItems();
+  }, []);
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+      }
+    });
   }, []);
 
   // Function to handle adding a new item
@@ -185,7 +197,13 @@ const Home = () => {
         ...pantryItems,
         { id: docRef.id, ...newItem, image: imageUrl, label: labels[0] || "" },
       ]);
-      setNewItem({ name: "", quantity: "", expirationDate: "", image: "", label: "" });
+      setNewItem({
+        name: "",
+        quantity: "",
+        expirationDate: "",
+        image: "",
+        label: "",
+      });
     } catch (error) {
       console.error("Error adding item:", error);
     }
@@ -243,12 +261,12 @@ const Home = () => {
 
     return format(date, "MM/dd/yyyy");
   };
-console.log(pantryItems)
+  console.log(pantryItems);
   // Function to fetch recipes based on pantry items
   const handleFetchRecipes = async () => {
     try {
-      const labels = pantryItems.flatMap(item => item.name).filter(Boolean);
-      console.log(labels)
+      const labels = pantryItems.flatMap((item) => item.name).filter(Boolean);
+      console.log(labels);
       const response = await fetch("/api/getRecipes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -275,188 +293,221 @@ console.log(pantryItems)
   );
 
   return (
-    <React.Fragment>
-      <CssBaseline />
-      <GlobalStyles styles={{ body: { backgroundColor: "#BB9AB1" } }} />
-      <Header position="static">
-        <Toolbar>
-          <Typography  variant="h5" noWrap  style={{ 
-            fontFamily: "'Pacifico', cursive" ,
-            color: "#EDDCD9",
-            paddingBottom: 10,
-          }}>
-            Pantry Vibe
-          </Typography>
-          <Typography variant="subtitle1" noWrap style={{ marginLeft: "20px" }}>
-            Keep track of your pantry items effortlessly
-          </Typography>
-        </Toolbar>
-      </Header>
-      <Container>
-        <Root>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Title variant="h4">Pantry Items</Title>
-            </Grid>
-            <Grid item xs={12}>
-              <CustomTextField
-                label="Search items"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <IconButton>
-                      <Search />
-                    </IconButton>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <CustomTextField
-                label="Item Name"
-                value={newItem.name}
-                onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-              />
-              <CustomTextField
-                label="Quantity"
-                value={newItem.quantity}
-                onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-              />
-              <CustomTextField
-                label="Expiration Date"
-                type="date"
-                value={newItem.expirationDate}
-                onChange={(e) => setNewItem({ ...newItem, expirationDate: e.target.value })}
-                InputLabelProps={{ shrink: true }}
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<CameraAlt />}
-                onClick={() => setCameraOpen(true)}
-              >
-                Capture Image
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleAddItem}
-                style={{ marginLeft: "10px" }}
-              >
-                Add Item
-              </Button>
-            </Grid>
-            {editMode && (
-              <Grid item xs={12}>
-                <CustomTextField
-                  label="Edit Item Name"
-                  value={editedItem.name}
-                  onChange={(e) => setEditedItem({ ...editedItem, name: e.target.value })}
-                />
-                <CustomTextField
-                  label="Edit Quantity"
-                  value={editedItem.quantity}
-                  onChange={(e) => setEditedItem({ ...editedItem, quantity: e.target.value })}
-                />
-                <CustomTextField
-                  label="Edit Expiration Date"
-                  type="date"
-                  value={editedItem.expirationDate}
-                  onChange={(e) => setEditedItem({ ...editedItem, expirationDate: e.target.value })}
-                  InputLabelProps={{ shrink: true }}
-                />
-                <UpdateButton onClick={handleUpdateItem}>
-                  Update Item
-                </UpdateButton>
-              </Grid>
-            )}
-            <Grid item xs={12}>
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={handleFetchRecipes}
-              >
-                Fetch Recipes
-              </Button>
-              {recipes.length > 0 && (
-                <Box>
-                  <Typography variant="h6">Recipes:</Typography>
-                  <ul>
-                    {recipes.map((recipe) => (
-                      <li key={recipe.id}>
-                        <Typography variant="body1">{recipe.title}</Typography>
-                      </li>
-                    ))}
-                  </ul>
-                </Box>
-              )}
-            </Grid>
-            <Grid item xs={12}>
-              <ul>
-                {filteredItems.map((item) => (
-                  <ListItem key={item.id}>
-                    <Typography variant="body1">
-                      {item.name} - {item.quantity} - {formatDate(item.expirationDate)}
-                    </Typography>
-                    {item.image && (
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        width={100}
-                        height={100}
-                        style={{ marginLeft: "10px", borderRadius: "4px" }}
-                      />
-                    )}
-                    <div>
-                      <CustomIconButton onClick={() => handleEditItem(item)}>
-                        <Edit />
-                      </CustomIconButton>
-                      <CustomIconButton onClick={() => handleDeleteItem(item.id)}>
-                        <Delete />
-                      </CustomIconButton>
-                    </div>
-                  </ListItem>
-                ))}
-              </ul>
-            </Grid>
-          </Grid>
-          <Modal open={cameraOpen} onClose={() => setCameraOpen(false)}>
-            <Box
-              sx={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: 400,
-                bgcolor: "background.paper",
-                border: "2px solid #000",
-                boxShadow: 24,
-                p: 4,
+    <Auth>
+      <Box>
+        <CssBaseline />
+        <GlobalStyles styles={{ body: { backgroundColor: "#BB9AB1" } }} />
+        <Header position="static">
+          <Toolbar>
+            <Typography
+              variant="h5"
+              noWrap
+              style={{
+                fontFamily: "'Pacifico', cursive",
+                color: "#EDDCD9",
+                paddingBottom: 10,
               }}
             >
-              <Webcam
-                audio={false}
-                ref={webcamRef}
-                screenshotFormat="image/jpeg"
-                width="100%"
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleCapture}
-                style={{ marginTop: "10px" }}
+              Pantry Vibe
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              noWrap
+              style={{ marginLeft: "20px" }}
+            >
+              Keep track of your pantry items effortlessly
+            </Typography>
+          </Toolbar>
+        </Header>
+        <Container>
+          <Root>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Title variant="h4">Pantry Items</Title>
+              </Grid>
+              <Grid item xs={12}>
+                <CustomTextField
+                  label="Search items"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    endAdornment: (
+                      <IconButton>
+                        <Search />
+                      </IconButton>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <CustomTextField
+                  label="Item Name"
+                  value={newItem.name}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, name: e.target.value })
+                  }
+                />
+                <CustomTextField
+                  label="Quantity"
+                  value={newItem.quantity}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, quantity: e.target.value })
+                  }
+                />
+                <CustomTextField
+                  label="Expiration Date"
+                  type="date"
+                  value={newItem.expirationDate}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, expirationDate: e.target.value })
+                  }
+                  InputLabelProps={{ shrink: true }}
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<CameraAlt />}
+                  onClick={() => setCameraOpen(true)}
+                >
+                  Capture Image
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleAddItem}
+                  style={{ marginLeft: "10px" }}
+                >
+                  Add Item
+                </Button>
+              </Grid>
+              {editMode && (
+                <Grid item xs={12}>
+                  <CustomTextField
+                    label="Edit Item Name"
+                    value={editedItem.name}
+                    onChange={(e) =>
+                      setEditedItem({ ...editedItem, name: e.target.value })
+                    }
+                  />
+                  <CustomTextField
+                    label="Edit Quantity"
+                    value={editedItem.quantity}
+                    onChange={(e) =>
+                      setEditedItem({
+                        ...editedItem,
+                        quantity: e.target.value,
+                      })
+                    }
+                  />
+                  <CustomTextField
+                    label="Edit Expiration Date"
+                    type="date"
+                    value={editedItem.expirationDate}
+                    onChange={(e) =>
+                      setEditedItem({
+                        ...editedItem,
+                        expirationDate: e.target.value,
+                      })
+                    }
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <UpdateButton onClick={handleUpdateItem}>
+                    Update Item
+                  </UpdateButton>
+                </Grid>
+              )}
+              <Grid item xs={12}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleFetchRecipes}
+                >
+                  Fetch Recipes
+                </Button>
+                {recipes.length > 0 && (
+                  <Box>
+                    <Typography variant="h6">Recipes:</Typography>
+                    <ul>
+                      {recipes.map((recipe) => (
+                        <li key={recipe.id}>
+                          <Typography variant="body1">
+                            {recipe.title}
+                          </Typography>
+                        </li>
+                      ))}
+                    </ul>
+                  </Box>
+                )}
+              </Grid>
+              <Grid item xs={12}>
+                <ul>
+                  {filteredItems.map((item) => (
+                    <ListItem key={item.id}>
+                      <Typography variant="body1">
+                        {item.name} - {item.quantity} -{" "}
+                        {formatDate(item.expirationDate)}
+                      </Typography>
+                      {item.image && (
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          width={100}
+                          height={100}
+                          style={{ marginLeft: "10px", borderRadius: "4px" }}
+                        />
+                      )}
+                      <div>
+                        <CustomIconButton onClick={() => handleEditItem(item)}>
+                          <Edit />
+                        </CustomIconButton>
+                        <CustomIconButton
+                          onClick={() => handleDeleteItem(item.id)}
+                        >
+                          <Delete />
+                        </CustomIconButton>
+                      </div>
+                    </ListItem>
+                  ))}
+                </ul>
+              </Grid>
+            </Grid>
+            <Modal open={cameraOpen} onClose={() => setCameraOpen(false)}>
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: 400,
+                  bgcolor: "background.paper",
+                  border: "2px solid #000",
+                  boxShadow: 24,
+                  p: 4,
+                }}
               >
-                Capture
-              </Button>
-            </Box>
-          </Modal>
-        </Root>
-      </Container>
-      <Footer>
-        <Typography variant="body1">© 2024 Pantry Manager</Typography>
-      </Footer>
-    </React.Fragment>
+                <Webcam
+                  audio={false}
+                  ref={webcamRef}
+                  screenshotFormat="image/jpeg"
+                  width="100%"
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleCapture}
+                  style={{ marginTop: "10px" }}
+                >
+                  Capture
+                </Button>
+              </Box>
+            </Modal>
+          </Root>
+        </Container>
+        <Footer>
+          <Typography variant="body1">© 2024 Pantry Manager</Typography>
+        </Footer>
+      </Box>
+    </Auth>
   );
 };
 

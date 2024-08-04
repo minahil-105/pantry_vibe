@@ -11,13 +11,14 @@ const firebaseConfig = {
   storageBucket: "pantry-vibe.appspot.com",
   messagingSenderId: "1059362299101",
   appId: "1:1059362299101:web:4931a3356f5e703c4dcf34",
-  measurementId: "G-KSNDTYQX1F"
+  measurementId: "G-KSNDTYQX1F",
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
 // const analytics = getAnalytics(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-export {auth, db, storage };
+export { auth, db, storage };
