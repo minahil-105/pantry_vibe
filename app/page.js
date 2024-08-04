@@ -1,45 +1,40 @@
 "use client";
-import { useEffect, useState, useRef, Fragment } from "react";
+import "@fontsource/pacifico";
+import { CameraAlt, Delete, Edit, Search } from "@mui/icons-material";
 import {
-  Box,
-  TextField,
-  Button,
-  Grid,
-  Typography,
-  IconButton,
   AppBar,
-  Toolbar,
+  Box,
+  Button,
   Container,
   CssBaseline,
+  GlobalStyles,
+  Grid,
+  IconButton,
   Modal,
+  TextField,
+  Toolbar,
+  Typography,
 } from "@mui/material";
-import { GlobalStyles } from "@mui/material";
-import {
-  Add,
-  Delete,
-  Edit,
-  Search,
-  CameraAlt,
-  Bluetooth,
-} from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { format } from "date-fns";
-import Webcam from "react-webcam";
-import Image from "next/image";
-import { db, storage } from "./firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 import {
-  collection,
   addDoc,
-  getDocs,
+  collection,
   deleteDoc,
   doc,
+  getDocs,
   updateDoc,
+  query,
+  where,
 } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import "@fontsource/pacifico";
+import { getDownloadURL, ref, uploadString } from "firebase/storage";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
+import Webcam from "react-webcam";
 import Auth from "./auth";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebaseConfig";
+import { auth, db, storage } from "./firebaseConfig";
 
 // Styled components for better UI design
 const Root = styled(Box)({
@@ -127,12 +122,15 @@ const Home = () => {
   const [recipes, setRecipes] = useState([]);
   const webcamRef = useRef(null);
   const [user, setUser] = useState(null);
-  console.log(user);
   // Fetch items from Firestore on component mount
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "pantryItems"));
+        const q = query(
+          collection(db, "pantryItems"),
+          where("uid", "==", user.uid)
+        );
+        const querySnapshot = await getDocs(q);
         const items = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -142,9 +140,10 @@ const Home = () => {
         console.error("Error fetching items:", error);
       }
     };
-
-    fetchItems();
-  }, []);
+    if (user) {
+      fetchItems();
+    }
+  }, [user]);
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -160,7 +159,7 @@ const Home = () => {
       alert("Name and Quantity are required!");
       return;
     }
-
+    const loading = toast.loading("Adding item....");
     try {
       let imageUrl = "";
       let labels = [];
@@ -180,8 +179,7 @@ const Home = () => {
           console.error("Error in image analysis request:", response);
           throw new Error("Image analysis failed");
         }
-        labels = await response.json();
-        console.log("Labels:", labels); // Log all labels to console
+        labels = await response.json(); // Log all labels to console
       }
 
       // Add item to Firestore with the first label and image URL
@@ -191,6 +189,7 @@ const Home = () => {
         expirationDate: newItem.expirationDate,
         image: imageUrl,
         label: labels[0] || "", // Display only the first label
+        uid: user.uid,
       });
 
       setPantryItems([
@@ -204,8 +203,11 @@ const Home = () => {
         image: "",
         label: "",
       });
+      toast.dismiss(loading);
+      toast.success("Item Added Successfully!");
     } catch (error) {
-      console.error("Error adding item:", error);
+      toast.dismiss(loading);
+      toast.error(error.message);
     }
   };
 
@@ -261,12 +263,10 @@ const Home = () => {
 
     return format(date, "MM/dd/yyyy");
   };
-  console.log(pantryItems);
   // Function to fetch recipes based on pantry items
   const handleFetchRecipes = async () => {
     try {
       const labels = pantryItems.flatMap((item) => item.name).filter(Boolean);
-      console.log(labels);
       const response = await fetch("/api/getRecipes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
