@@ -320,7 +320,7 @@ const Home = () => {
               noWrap
               style={{ marginLeft: "20px" }}
             >
-              Keep track of your pantry items effortlessly
+              Keep track of your Pantry items effortlessly
             </Typography>
           </Toolbar>
         </Header>
